@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify, make_response
 from flask_migrate import Migrate
-
-from models import db, Hero, Power, HeroPower
+from hero import Hero
+from power import Power
+from hero_power import HeroPower
+from config import db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
@@ -110,4 +112,4 @@ def create_hero_power():
         return make_response(jsonify({'errors': ['Validation errors']}), 400)
 
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(port=5500)

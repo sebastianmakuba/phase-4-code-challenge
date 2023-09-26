@@ -1,8 +1,10 @@
 import random
-from models import db, Hero, Power, HeroPower
+from hero import Hero
+from power import Power
+from hero_power import HeroPower
 from app import app
+from config import db
 
-# Create an application context
 app.app_context().push()
 
 # Create some powers
@@ -43,15 +45,15 @@ strengths = ['Strong', 'Weak', 'Average']
 
 for hero in Hero.query.all():
     for _ in range(1, 4):  # Randomly associate heroes with powers (1 to 3 powers)
-        power_data = random.choice(powers)  # Choose a random power data from the list
+        power = random.choice(powers)  # Choose a random power from the list
         strength = random.choice(strengths)
-
-        # Query for the corresponding hero and power objects
-        hero = Hero.query.get(hero.id)
-        power = Power.query.filter_by(name=power_data['name']).first()
-
-        # Create HeroPower instances using relationship attributes
-        hero_power = HeroPower(hero=hero, power=power, strength=strength)
+        
+        # Query for the Hero and Power objects
+        hero = Hero.query.filter_by(name=hero.name).first()
+        power = Power.query.filter_by(name=power['name']).first()
+        
+        # Create HeroPower instances using the queried objects
+        hero_power = HeroPower(strength=strength, hero=hero, power=power)
         db.session.add(hero_power)
 
 # Commit the changes for hero powers to the database
