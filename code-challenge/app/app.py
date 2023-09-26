@@ -25,6 +25,7 @@ def get_heroes():
     return jsonify(hero_list)
 
 # Implement the GET /heroes/:id route
+# Implement the GET /heroes/:id route
 @app.route('/heroes/<int:id>', methods=['GET'])
 def get_hero(id):
     hero = Hero.query.get(id)
@@ -35,10 +36,13 @@ def get_hero(id):
         'id': hero.id,
         'name': hero.name,
         'super_name': hero.super_name,
-        'powers': [{'id': power.id, 'name': power.name, 'description': power.description} for power in hero.powers]
+        'powers': [{'id': hero_power.power.id, 'name': hero_power.power.name, 'description': hero_power.power.description, 'strength': hero_power.strength} for hero_power in hero.hero_powers]
     }
     
     return jsonify(hero_data)
+
+
+
 
 # Implement the GET /powers route
 @app.route('/powers', methods=['GET'])
