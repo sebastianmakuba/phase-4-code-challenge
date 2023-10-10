@@ -4,13 +4,14 @@ from hero import Hero
 from power import Power
 from hero_power import HeroPower
 from config import db
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 migrate = Migrate(app, db)
-
+CORS(app)
 db.init_app(app)
 
 @app.route('/')

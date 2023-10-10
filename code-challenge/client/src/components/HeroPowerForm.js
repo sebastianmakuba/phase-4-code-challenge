@@ -11,7 +11,7 @@ function HeroPowerForm() {
   const history = useHistory();
 
   useEffect(() => {
-    fetch("/heroes")
+    fetch("http://127.0.0.1:5500/heroes")
       .then((r) => r.json())
       .then(setHeroes);
   }, []);
@@ -37,7 +37,7 @@ function HeroPowerForm() {
       body: JSON.stringify(formData),
     }).then((r) => {
       if (r.ok) {
-        history.push(`/heroes/${heroId}`);
+        history.push(`http://127.0.0.1:5500/heroes/${heroId}`);
       } else {
         r.json().then((err) => setFormErrors(err.errors));
       }
