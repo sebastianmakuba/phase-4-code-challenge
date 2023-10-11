@@ -1,4 +1,5 @@
-import { Switch, Route } from "react-router-dom";
+import { Container, CssBaseline } from "@mui/material";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Header from "./Header";
 import Hero from "./Hero";
 import Home from "./Home";
@@ -8,9 +9,10 @@ import PowerEditForm from "./PowerEditForm";
 
 function App() {
   return (
-    <div>
+    <Router>
+      <CssBaseline />
       <Header />
-      <main>
+      <Container>
         <Switch>
           <Route exact path="/hero_powers/new">
             <HeroPowerForm />
@@ -28,8 +30,8 @@ function App() {
             <Home />
           </Route>
         </Switch>
-      </main>
-    </div>
+      </Container>
+    </Router>
   );
 }
 

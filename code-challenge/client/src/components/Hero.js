@@ -1,47 +1,46 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { CircularProgress, Typography, List, ListItem } from "@mui/material";
 
 function Hero() {
-  const [{ data: hero, error, status }, setHero] = useState({
-    data: null,
-    error: null,
-    status: "pending",
-  });
   const { id } = useParams();
+  const [hero, setHero] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:5500/heroes/${id}`).then((r) => {
-      if (r.ok) {
-        r.json().then((hero) =>
-          setHero({ data: hero, error: null, status: "resolved" })
-        );
-      } else {
-        r.json().then((err) =>
-          setHero({ data: null, error: err.error, status: "rejected" })
-        );
-      }
-    });
+    fetch(`http://127.0.0.1:5500/heroes/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Hero not found");
+        }
+        return response.json();
+      })
+      .then((data) => setHero(data))
+      .catch((err) => setError(err.message));
   }, [id]);
 
-  if (status === "pending") return <h1>Loading...</h1>;
-  if (status === "rejected") return <h1>Error: {error.error}</h1>;
+  if (error) {
+    return <Typography variant="h5">Error: {error}</Typography>;
+  }
+
+  if (!hero) {
+    return <CircularProgress />;
+  }
 
   return (
-    <section>
-      <h2>{hero.super_name}</h2>
-      <h2>AKA {hero.name}</h2>
-
-      <h3>Powers:</h3>
-      <ul>
+    <div>
+      <Typography variant="h4">{hero.super_name}</Typography>
+      <Typography variant="h5">AKA {hero.name}</Typography>
+      <Typography variant="h6">Powers:</Typography>
+      <List>
         {hero.powers.map((power) => (
-          <li key={hero.id}>
+          <ListItem key={power.id}>
             <Link to={`/powers/${power.id}`}>{power.name}</Link>
-          </li>
+          </ListItem>
         ))}
-      </ul>
-
+      </List>
       <Link to="/hero_powers/new">Add Hero Power</Link>
-    </section>
+    </div>
   );
 }
 
