@@ -1,26 +1,42 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import HeroCard from './HeroCard';
+import { Button, Container } from '@mui/material';
 
 function Home() {
-  const [heros, setHeros] = useState([]);
+  const [heroes, setHeroes] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5500/heroes")
-      .then((r) => r.json())
-      .then(setHeros);
+    fetch('http://localhost:5500/heroes')
+      .then((response) => response.json())
+      .then((data) => setHeroes(data))
+      .catch((error) => console.error(error));
   }, []);
 
+  const handleDeleteHero = (heroId) => {
+    fetch(`http://localhost:5500/heroes/${heroId}`, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        setHeroes((prevHeroes) => prevHeroes.filter((hero) => hero.id !== heroId));
+      })
+      .catch((error) => console.error(error));
+  };
+
   return (
-    <section>
-      <h2>All Heroes</h2>
-      <ul>
-        {heros.map((hero) => (
-          <li key={hero.id}>
-            <Link to={`/heroes/${hero.id}`}>{hero.super_name}</Link>
-          </li>
+    <Container>
+      <h1>Superheroes</h1>
+      <Link to="/new-hero">
+        <Button variant="contained" color="primary">
+          Create New Superhero
+        </Button>
+      </Link>
+      <div className="hero-list">
+        {heroes.map((hero) => (
+          <HeroCard key={hero.id} hero={hero} onDelete={handleDeleteHero} />
         ))}
-      </ul>
-    </section>
+      </div>
+    </Container>
   );
 }
 

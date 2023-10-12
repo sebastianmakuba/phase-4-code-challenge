@@ -1,74 +1,58 @@
-import { useEffect, useState } from "react";
-import { useParams, useHistory } from "react-router";
+import React, { useState } from 'react';
+import {
+  TextField,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from '@mui/material';
 
-function PowerEditForm() {
-  const [{ data: power, errors, status }, setPower] = useState({
-    data: null,
-    errors: [],
-    status: "pending",
-  });
-  const [description, setDescription] = useState("");
-  const history = useHistory();
-  const { id } = useParams();
+function PowerEditForm({ open, onClose, power, onSave }) {
+  const [editedDescription, setEditedDescription] = useState(power ? power.description : '');
 
-  useEffect(() => {
-    fetch(`http://127.0.0.1:5500/powers/${id}`).then((r) => {
-      if (r.ok) {
-        r.json().then((power) => {
-          setPower({ data: power, errors: [], status: "resolved" });
-          setDescription(power.description);
+  const handleSave = () => {
+    if (power) {
+      const updatedPower = { ...power, description: editedDescription };
+      
+      fetch(`http://localhost:5500/powers/${power.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedPower),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          onSave(data);
+          onClose();
+        })
+        .catch((error) => {
+          console.error('Error updating power description:', error);
         });
-      } else {
-        r.json().then((err) =>
-          setPower({ data: null, errors: [err.error], status: "rejected" })
-        );
-      }
-    });
-  }, [id]);
-
-  if (status === "pending") return <h1>Loading...</h1>;
-
-  function handleSubmit(e) {
-    e.preventDefault();
-    fetch(`/powers/${power.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        description,
-      }),
-    }).then((r) => {
-      if (r.ok) {
-        history.push(`/powers/${power.id}`);
-      } else {
-        r.json().then((err) =>
-          setPower({ data: power, errors: err.errors, status: "rejected" })
-        );
-      }
-    });
-  }
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Editing {power.name}</h2>
-      <label htmlFor="description">Description:</label>
-      <textarea
-        id="description"
-        name="description"
-        rows="4"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-      {errors.length > 0
-        ? errors.map((err) => (
-            <p key={err} style={{ color: "red" }}>
-              {err}
-            </p>
-          ))
-        : null}
-      <button type="submit">Update Power</button>
-    </form>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>Edit Power</DialogTitle>
+      <DialogContent>
+        <TextField
+          fullWidth
+          label="Description"
+          value={editedDescription}
+          onChange={(e) => setEditedDescription(e.target.value)}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleSave} color="primary">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
