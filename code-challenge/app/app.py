@@ -134,6 +134,43 @@ def update_power(id):
     except Exception as e:
         db.session.rollback()
         return make_response(jsonify({'errors': ['Validation errors']}), 400)
+    
+@app.route('/hero_powers', methods=['POST'])
+def create_hero_power():
+    data = request.get_json()
+
+    # Ensure that the request contains necessary data
+    if not all(key in data for key in ['hero_id', 'power_id', 'strength']):
+        return make_response(jsonify({'error': 'Invalid request data'}), 400)
+
+    try:
+        # Retrieve the hero and power based on IDs
+        hero = Hero.query.get(data['hero_id'])
+        power = Power.query.get(data['power_id'])
+
+        # Check if hero and power exist
+        if hero is None or power is None:
+            return make_response(jsonify({'error': 'Hero or Power not found'}), 404)
+
+        # Create a new HeroPower instance
+        hero_power = HeroPower(hero=hero, power=power, strength=data['strength'])
+
+        # Add to the database and commit the transaction
+        db.session.add(hero_power)
+        db.session.commit()
+
+        # Return a response indicating success
+        response_data = {
+            'id': hero_power.id,
+            'hero_id': hero_power.hero.id,
+            'power_id': hero_power.power.id,
+            'strength': hero_power.strength,
+        }
+        return jsonify(response_data)
+
+    except Exception as e:
+        db.session.rollback()
+        return make_response(jsonify({'errors': ['Validation errors']}), 400)
 
 # Implement the DELETE /heroes/:id route to delete a hero
 @app.route('/heroes/<int:id>', methods=['DELETE'])
@@ -150,6 +187,7 @@ def delete_hero(id):
     except Exception as e:
         db.session.rollback()
         return make_response(jsonify({'error': 'Failed to delete hero'}), 500)
+        
 
 if __name__ == '__main__':
     app.run(debug=True, port=5500)

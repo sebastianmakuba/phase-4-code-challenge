@@ -2,7 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { Button, Container, Card, CardContent, Typography, FormControl, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import {
+  Button,
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  FormControl,
+  FormGroup,
+  FormControlLabel,
+  Checkbox,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+} from '@mui/material';
 
 const NewHero = () => {
   const initialValues = {
@@ -26,19 +40,43 @@ const NewHero = () => {
   });
 
   const handleSubmit = (values, { setSubmitting }) => {
+    // Step 1: Create the hero
     fetch('http://localhost:5500/heroes', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        name: values.name,
+        super_name: values.super_name,
+      }),
     })
       .then((response) => response.json())
-      .then((data) => {
-        console.log('New hero created:', data);
+      .then((heroData) => {
+        // Step 2: Create hero's powers
+        const heroId = heroData.id;
+        const powerPromises = values.powers.map((selectedPower) => {
+          return fetch('http://localhost:5500/hero_powers', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              hero_id: heroId,
+              power_id: selectedPower.id,
+              strength: selectedPower.strength,
+            }),
+          });
+        });
+
+        // Wait for all power creation requests to complete
+        return Promise.all(powerPromises);
+      })
+      .then(() => {
+        console.log('New hero and powers created successfully');
       })
       .catch((error) => {
-        console.error('Error creating hero:', error);
+        console.error('Error creating hero and powers:', error);
       })
       .finally(() => {
         setSubmitting(false);
@@ -77,19 +115,27 @@ const NewHero = () => {
 
                 <div>
                   <label>Powers:</label>
-                  <FormControl component="fieldset">
-                    <FormGroup>
-                      {powers.map((power) => (
+                  <FormGroup>
+                    {powers.map((power) => (
+                      <div key={power.id}>
                         <FormControlLabel
-                          key={power.id}
                           control={
                             <Checkbox
-                              checked={values.powers.includes(power.id)}
+                              checked={values.powers.some(
+                                (selectedPower) => selectedPower.id === power.id
+                              )}
                               onChange={(event) => {
+                                const powerId = power.id;
                                 if (event.target.checked) {
-                                  setFieldValue('powers', [...values.powers, power.id]);
+                                  setFieldValue('powers', [
+                                    ...values.powers,
+                                    { id: powerId, strength: 'Strong' },
+                                  ]);
                                 } else {
-                                  setFieldValue('powers', values.powers.filter((id) => id !== power.id));
+                                  setFieldValue(
+                                    'powers',
+                                    values.powers.filter((powerItem) => powerItem.id !== powerId)
+                                  );
                                 }
                               }}
                               name={`power_${power.id}`}
@@ -97,9 +143,40 @@ const NewHero = () => {
                           }
                           label={power.name}
                         />
-                      ))}
-                    </FormGroup>
-                  </FormControl>
+
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <InputLabel>Strength:</InputLabel>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <Select
+                              value={
+                                values.powers.find((selectedPower) => selectedPower.id === power.id)
+                                  ?.strength || 'Strong'
+                              }
+                              onChange={(event) => {
+                                const powerId = power.id;
+                                const selectedStrength = event.target.value;
+                                setFieldValue(
+                                  'powers',
+                                  values.powers.map((powerItem) => {
+                                    if (powerItem.id === powerId) {
+                                      return { id: powerId, strength: selectedStrength };
+                                    }
+                                    return powerItem;
+                                  })
+                                );
+                              }}
+                            >
+                              <MenuItem value="Strong">Strong</MenuItem>
+                              <MenuItem value="Weak">Weak</MenuItem>
+                              <MenuItem value="Average">Average</MenuItem>
+                            </Select>
+                          </Grid>
+                        </Grid>
+                      </div>
+                    ))}
+                  </FormGroup>
                 </div>
 
                 <Button type="submit" variant="contained" color="primary">
