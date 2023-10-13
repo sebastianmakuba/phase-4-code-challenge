@@ -87,13 +87,19 @@ function HeroDetails() {
         }
       })
       .then((updatedHero) => {
-        setHero(updatedHero);
+        // Ensure the 'powers' property is included in the response
+        if ('powers' in updatedHero) {
+          setHero(updatedHero);
+        } else {
+          setHero({ ...updatedHero, powers: hero.powers }); // Preserve the original 'powers'
+        }
         setOpenEditForm(false);
       })
       .catch((error) => {
         console.error('Error updating hero data:', error);
       });
   };
+  
 
   if (!hero) {
     return <div>Loading...</div>;
@@ -118,6 +124,7 @@ function HeroDetails() {
                     variant="outlined"
                     color="primary"
                     onClick={() => handleEditPower(power.id)}
+                    style={{ marginRight: '8px' }}
                   >
                     Edit Power
                   </Button>
@@ -129,6 +136,7 @@ function HeroDetails() {
             variant="contained"
             color="primary"
             onClick={() => handleEditHeroField('name')}
+            style={{ marginRight: '8px' }}
           >
             Edit Name
           </Button>
@@ -136,6 +144,7 @@ function HeroDetails() {
             variant="contained"
             color="primary"
             onClick={() => handleEditHeroField('super_name')}
+            style={{ marginRight: '8px' }}
           >
             Edit Superhero Name
           </Button>

@@ -14,11 +14,11 @@ function HeroCard({ hero, onDelete }) {
         <Typography variant="h6">{hero.name}</Typography>
         <Typography variant="subtitle1">{hero.super_name}</Typography>
         <Link to={`/hero/${hero.id}/edit`}>
-          <Button variant="outlined" color="primary">
+          <Button variant="outlined" color="primary" style={{ marginRight: '8px' }}>
             Edit Powers
           </Button>
         </Link>
-        <Button variant="outlined" startIcon={<DeleteIcon />} onClick={handleDeleteHero}>
+        <Button variant="outlined" startIcon={<DeleteIcon />} onClick={handleDeleteHero} style={{ marginRight: '8px' }}>
           Delete
         </Button>
       </CardContent>
