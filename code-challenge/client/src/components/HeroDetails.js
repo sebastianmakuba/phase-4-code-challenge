@@ -8,10 +8,13 @@ import {
   ListItem,
   ListItemText,
   Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  TextField,
 } from '@mui/material';
 import PowerEditForm from './PowerEditForm';
 import { useParams } from 'react-router-dom';
-import EditHeroForm from './EditHeroForm';
 
 function HeroDetails() {
   const { id } = useParams();
@@ -21,6 +24,7 @@ function HeroDetails() {
 
   const [openEditForm, setOpenEditForm] = useState(false);
   const [editedPower, setEditedPower] = useState(null);
+  const [editedHeroField, setEditedHeroField] = useState('');
 
   useEffect(() => {
     fetch(`http://localhost:5500/heroes/${id}`)
@@ -37,6 +41,7 @@ function HeroDetails() {
 
   const handleEditHeroField = (field) => {
     setEditHeroField(field);
+    setEditedHeroField(hero[field]);
     setOpenEditForm(true);
   };
 
@@ -66,20 +71,21 @@ function HeroDetails() {
   };
 
   const handleSaveHeroField = (value) => {
-    // Prepare the data to send in the PATCH request
-    const data = {
-      [editHeroField]: value,
-    };
-  
-    // Send a PATCH request to update the hero's name or superhero name
+    const updatedHeroData = { ...hero, [editHeroField]: value };
     fetch(`http://localhost:5500/heroes/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(updatedHeroData),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Failed to update hero data');
+        }
+      })
       .then((updatedHero) => {
         setHero(updatedHero);
         setOpenEditForm(false);
@@ -88,7 +94,6 @@ function HeroDetails() {
         console.error('Error updating hero data:', error);
       });
   };
-  
 
   if (!hero) {
     return <div>Loading...</div>;
@@ -143,13 +148,26 @@ function HeroDetails() {
         power={editedPower}
         onSave={handleSavePower}
       />
-      <EditHeroForm
-        open={openEditForm && editHeroField !== null}
-        onClose={handleCloseEditForm}
-        field={editHeroField}
-        value={hero[editHeroField]}
-        onSave={handleSaveHeroField}
-      />
+
+      <Dialog open={openEditForm && editHeroField !== null} onClose={handleCloseEditForm}>
+        <DialogTitle>Edit {editHeroField === 'name' ? 'Name' : 'Superhero Name'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label={`Edit ${editHeroField === 'name' ? 'Name' : 'Superhero Name'}`}
+            variant="outlined"
+            fullWidth
+            value={editedHeroField}
+            onChange={(e) => setEditedHeroField(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => handleSaveHeroField(editedHeroField)}
+          >
+            Save
+          </Button>
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 }
