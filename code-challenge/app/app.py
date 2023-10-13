@@ -180,14 +180,20 @@ def delete_hero(id):
     if not hero:
         return make_response(jsonify({'error': 'Hero not found'}), 404)
 
+    # Delete related hero_power records associated with this hero
+    hero_powers = HeroPower.query.filter_by(hero_id=id).all()
+    for hero_power in hero_powers:
+        db.session.delete(hero_power)
+
     try:
+        # Now, delete the hero
         db.session.delete(hero)
         db.session.commit()
         return make_response(jsonify({}), 204)
     except Exception as e:
         db.session.rollback()
         return make_response(jsonify({'error': 'Failed to delete hero'}), 500)
-        
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5500)

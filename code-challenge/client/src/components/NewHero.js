@@ -8,7 +8,6 @@ import {
   Card,
   CardContent,
   Typography,
-  FormControl,
   FormGroup,
   FormControlLabel,
   Checkbox,
@@ -39,7 +38,7 @@ const NewHero = () => {
     super_name: Yup.string().required('Superhero name is required'),
   });
 
-  const handleSubmit = (values, { setSubmitting }) => {
+  const handleSubmit = (values, { setSubmitting, resetForm }) => {
     // Step 1: Create the hero
     fetch('http://localhost:5500/heroes', {
       method: 'POST',
@@ -68,12 +67,14 @@ const NewHero = () => {
             }),
           });
         });
-
+  
         // Wait for all power creation requests to complete
         return Promise.all(powerPromises);
       })
       .then(() => {
         console.log('New hero and powers created successfully');
+        // Reset the form values
+        resetForm();
       })
       .catch((error) => {
         console.error('Error creating hero and powers:', error);
