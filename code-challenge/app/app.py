@@ -84,51 +84,25 @@ def get_hero_powers(id):
 
 @app.route('/heroes/<int:id>', methods=['PATCH'])
 def update_hero(id):
-    hero = db.session.get(Hero, id)
+    hero = Hero.query.get(id)
 
     if not hero:
         return make_response(jsonify({'error': 'Hero not found'}), 404)
-    
+
     data = request.get_json()
-    
-    # Update hero's name and superhero name
+
     if 'name' in data:
         hero.name = data['name']
+
     if 'super_name' in data:
         hero.super_name = data['super_name']
-    
-    # Update hero's powers
-    if 'powers' in data:
-        hero_powers = []
 
-        # Create or update HeroPower objects for each power
-        for power_data in data['powers']:
-            power_id = power_data.get('id')
-            strength = power_data.get('strength')
-
-            # Find the corresponding HeroPower object if it exists
-            hero_power = next((hp for hp in hero.hero_powers if hp.power_id == power_id), None)
-
-            # Create a new HeroPower object if it doesn't exist
-            if not hero_power:
-                power = Power.query.get(power_id)
-                if not power:
-                    return make_response(jsonify({'error': 'Power not found'}), 404)
-                hero_power = HeroPower(hero=hero, power=power)
-
-            hero_power.strength = strength
-            hero_powers.append(hero_power)
-
-        # Update the hero's powers
-        hero.hero_powers = hero_powers
-    
     try:
         db.session.commit()
         return jsonify({
             'id': hero.id,
             'name': hero.name,
             'super_name': hero.super_name,
-            'powers': [{'id': hp.power.id, 'strength': hp.strength} for hp in hero.hero_powers]
         })
     except Exception as e:
         db.session.rollback()
@@ -160,7 +134,6 @@ def update_power(id):
     except Exception as e:
         db.session.rollback()
         return make_response(jsonify({'errors': ['Validation errors']}), 400)
-
 
 # Implement the DELETE /heroes/:id route to delete a hero
 @app.route('/heroes/<int:id>', methods=['DELETE'])

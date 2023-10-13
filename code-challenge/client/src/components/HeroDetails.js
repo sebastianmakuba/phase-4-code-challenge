@@ -66,9 +66,29 @@ function HeroDetails() {
   };
 
   const handleSaveHeroField = (value) => {
-    setHero({ ...hero, [editHeroField]: value });
-    setOpenEditForm(false);
+    // Prepare the data to send in the PATCH request
+    const data = {
+      [editHeroField]: value,
+    };
+  
+    // Send a PATCH request to update the hero's name or superhero name
+    fetch(`http://localhost:5500/heroes/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then((updatedHero) => {
+        setHero(updatedHero);
+        setOpenEditForm(false);
+      })
+      .catch((error) => {
+        console.error('Error updating hero data:', error);
+      });
   };
+  
 
   if (!hero) {
     return <div>Loading...</div>;
